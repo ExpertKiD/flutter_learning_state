@@ -26,18 +26,36 @@ class App extends StatelessWidget {
   }
 }
 
-class Photo extends StatelessWidget {
+class Photo extends StatefulWidget {
+  final String url;
+
   const Photo({Key? key, required this.url}) : super(key: key);
 
-  final String url;
+  @override
+  _PhotoState createState() => _PhotoState(url: this.url);
+}
+
+class _PhotoState extends State<Photo> {
+  _PhotoState({required this.url});
+
+  String url;
+  int index = 0;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.only(top: 10),
-      child: Image.network(
-        url,
-        fit: BoxFit.cover,
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            index > urls.length - 1 ? index = 0 : index++;
+            url = urls[index];
+          });
+        },
+        child: Image.network(
+          url,
+          fit: BoxFit.cover,
+        ),
       ),
     );
   }
