@@ -11,62 +11,92 @@ const List<String> urls = [
   'https://thumbor.forbes.com/thumbor/711x533/https://specials-images.forbesimg.com/imageserve/5faad4255239c9448d6c7bcd/Best-Animal-Photos-Contest--Close-Up-Of-baby-monkey/960x0.jpg?fit=scale',
 ];
 
-class App extends StatelessWidget {
-  const App({Key? key}) : super(key: key);
+class App extends StatefulWidget {
+  @override
+  AppState createState() => AppState();
+}
+
+class AppState extends State<App> {
+  bool isTagging = false;
+  List<PhotoState> photoStates = List.of(urls.map((url) => PhotoState(url)));
+
+  void toggleTagging(String url) {
+    setState(() {
+      isTagging = !isTagging;
+      photoStates.forEach((element) {
+        if (isTagging && element.url == url) {
+          element.selected = true;
+        } else {
+          element.selected = false;
+        }
+      });
+    });
+  }
+
+  void onPhotoSelect(String url, bool selected) {
+    setState(() {
+      photoStates.forEach((element) {
+        if (element.url == url) {
+          element.selected = selected;
+        }
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Photo Viewer',
       home: GalleryPage(
-        urls: urls,
         title: 'Image Gallery',
+        onPhotoSelect: onPhotoSelect,
+        tagging: isTagging,
+        photoStates: photoStates,
+        toogleTagging: toggleTagging,
       ),
     );
   }
 }
 
-class Photo extends StatefulWidget {
+class PhotoState {
+  String url;
+  bool selected;
+
+  PhotoState(this.url, {this.selected = false});
+}
+
+class Photo extends StatelessWidget {
   final String url;
 
   const Photo({Key? key, required this.url}) : super(key: key);
 
   @override
-  _PhotoState createState() => _PhotoState(url: this.url);
-}
-
-class _PhotoState extends State<Photo> {
-  _PhotoState({required this.url});
-
-  String url;
-  int index = 0;
-
-  @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(top: 10),
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            index > urls.length - 1 ? index = 0 : index++;
-            url = urls[index];
-          });
-        },
+        padding: EdgeInsets.only(top: 10),
         child: Image.network(
           url,
           fit: BoxFit.cover,
-        ),
-      ),
-    );
+        ));
   }
 }
 
 class GalleryPage extends StatelessWidget {
   final String title;
-  final List<String> urls;
+  final List<PhotoState> photoStates;
+  final bool tagging;
 
-  const GalleryPage({Key? key, required this.title, required this.urls})
-      : super(key: key);
+  final Function toogleTagging;
+  final Function onPhotoSelect;
+
+  const GalleryPage({
+    Key? key,
+    required this.title,
+    required this.tagging,
+    required this.photoStates,
+    required this.toogleTagging,
+    required this.onPhotoSelect,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
