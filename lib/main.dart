@@ -66,18 +66,53 @@ class PhotoState {
 }
 
 class Photo extends StatelessWidget {
-  final String url;
+  final PhotoState photoState;
+  final bool selectable;
 
-  const Photo({Key? key, required this.url}) : super(key: key);
+  final Function onLongPress;
+  final Function onSelect;
+
+  const Photo({
+    required this.photoState,
+    required this.selectable,
+    required this.onLongPress,
+    required this.onSelect,
+  });
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> children = [
+      GestureDetector(
+        child: Image.network((photoState.url)),
+        onLongPress: () => onLongPress(photoState.url),
+      )
+    ];
+
+    if (selectable) {
+      children.add(Positioned(
+          left: 20,
+          top: 0,
+          child: Theme(
+            data: Theme.of(context)
+                .copyWith(unselectedWidgetColor: Colors.grey.shade200),
+            child: Checkbox(
+              onChanged: (value) {
+                onSelect(photoState.url, value);
+              },
+              value: photoState.selected,
+              activeColor: Colors.white,
+              checkColor: Colors.white,
+            ),
+          )));
+    }
+
     return Container(
-        padding: EdgeInsets.only(top: 10),
-        child: Image.network(
-          url,
-          fit: BoxFit.cover,
-        ));
+      padding: EdgeInsets.only(top: 10),
+      child: Stack(
+        alignment: Alignment.center,
+        children: children,
+      ),
+    );
   }
 }
 
@@ -107,8 +142,11 @@ class GalleryPage extends StatelessWidget {
       body: GridView.count(
         crossAxisCount: 2,
         primary: false,
-        children: List.of(urls.map((url) => Photo(
-              url: url,
+        children: List.of(photoStates.map((photoState) => Photo(
+              photoState: photoState,
+              onSelect: onPhotoSelect,
+              onLongPress: toogleTagging,
+              selectable: tagging,
             ))),
       ),
     );
